@@ -92,7 +92,7 @@ public abstract class AbstractInterpretingDatabase extends H2Database {
                 info.put("user", "sa");
                 info.put("password", "");
                 addH2Properties(info);
-                connection = new org.h2.Driver().connect("jdbc:h2:mem:jooq-meta-extensions-" + UUID.randomUUID(), info);
+                connection = new org.h2.Driver().connect(buildH2Url(), info);
 
                 export();
             }
@@ -146,12 +146,34 @@ public abstract class AbstractInterpretingDatabase extends H2Database {
         return outputSchema;
     }
 
+    private String buildH2Url() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("jdbc:h2:mem:jooq-meta-extensions-");
+        sb.append(UUID.randomUUID());
+
+        for (Map.Entry<Object, Object> entry : getProperties().entrySet()) {
+            String key = "" + entry.getKey();
+
+            if (key.startsWith("h2.url.")) {
+                String parameter = key.substring("h2.url.".length());
+                String value = "" + entry.getValue();
+
+                sb.append(';');
+                sb.append(parameter);
+                sb.append('=');
+                sb.append(value);
+            }
+        }
+
+        return sb.toString();
+    }
+
     private void addH2Properties(Properties properties) {
         for (Map.Entry<Object, Object> entry : getProperties().entrySet()) {
             String key = "" + entry.getKey();
 
-            if (key.startsWith("h2.")) {
-                String property = key.substring("h2.".length());
+            if (key.startsWith("h2.properties.")) {
+                String property = key.substring("h2.properties.".length());
                 properties.setProperty(property, "" + entry.getValue());
             }
         }
