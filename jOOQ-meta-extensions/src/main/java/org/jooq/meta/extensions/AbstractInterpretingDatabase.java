@@ -39,11 +39,7 @@ package org.jooq.meta.extensions;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import org.jooq.DSLContext;
 import org.jooq.Internal;
@@ -95,6 +91,7 @@ public abstract class AbstractInterpretingDatabase extends H2Database {
                 Properties info = new Properties();
                 info.put("user", "sa");
                 info.put("password", "");
+                addH2Properties(info);
                 connection = new org.h2.Driver().connect("jdbc:h2:mem:jooq-meta-extensions-" + UUID.randomUUID(), info);
 
                 export();
@@ -143,5 +140,16 @@ public abstract class AbstractInterpretingDatabase extends H2Database {
             return "";
 
         return outputSchema;
+    }
+
+    private void addH2Properties(Properties properties) {
+        for (Map.Entry<Object, Object> entry : getProperties().entrySet()) {
+            String key = "" + entry.getKey();
+
+            if (key.startsWith("h2.")) {
+                String property = key.substring("h2.".length());
+                properties.setProperty(property, "" + entry.getValue());
+            }
+        }
     }
 }
